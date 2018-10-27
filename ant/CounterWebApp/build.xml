@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+Commonly used elements of ant build file:
+1. Project:
+under comments added
+
+It is the root element of the build.xml file. A project element has the following attributes:
+a.	name: It specifies the name of the project.
+b.	default: It specifies the default target for the build script.
+c.	basedir: It specifies the base directory of the project.
+
+2. Property:
+
+Property element is used to define the properties like project name, 
+project source directory etc. A property can be read from a file or a classpath resource using file and resource attributes respectively. 
+The value of the property can be accessed using ${propertyName}.
+
+Commonly used ant predefined properties:
+1. ant.file: It specifies the build file location.
+2.	ant.version: It specifies the installed ant version.
+3.	basedir: It specifies the base directory of the build.
+4.	ant.project.name: It specifies the name of the project.
+5.	ant.home: It specifies the home directory of apache ant installation.
+6.	ant.core.lib: It specifies the ant jar file location.
+7.	ant.java.version: It specifies the java version which is used by ant.
+
+3. Task:
+
+A task is an atomic unit of work.
+Commonly used ant task:
+1.	javac: It compiles the specified source code.
+2.	zip: It creates a zip file.
+3.	jar: It creates a jar file.
+4.	war: It creates a war file.
+5.	ear: It creates an ear file.
+6.	junit: It runs the junit test cases from the junit framework.
+7.	echo: It prints the text to the System.out or to a file.
+8.	javadoc: It generates the code documentation.
+9.	sql: It executes the specified sql statements.
+10.	mkdir: It creates the specified directory structure.
+11.	path: It creates a classpath container which can be used later.
+
+4. Target:
+
+A target is used to group the tasks and can be run directly via ant. 
+A target can be dependent on other target. 
+If a target depends on other one or more targets then ant will automatically executes the dependent targets.
+Example: If a target t1 depends on target t2 and ant instructed to executed t1. 
+In this case ant first executes t2 and then t1 because of the dependency.
+Commonly used attributes of target elements:
+
+a.	name: It specify the target name.
+b.	depends: It specify the target names on which this target depends.
+-->
+
+
+<!-- Step:1 Set the project name, basedir and default target to be executed-->
+
+<!-- 
+Using '.' means 'current directory', 
+and '..' means 'parent directory'. 
+For a build.xml file, the directory in which the build.xml 
+file resides is considered the current directory.
+-->
+<project name="Ant Generate WAR" default="war" basedir=".">
+
+	<path id="classpath">
+			<fileset dir="WebContent/WEB-INF/lib">
+				<include name="*.jar"/>
+			</fileset>
+	 </path>
+ <!-- Step:2. Sets the properties here
+	 1.	src.dir: It specify the project source folder.
+	 2.	build.dir: It specify the project compilation output folder.
+	 3.	lib.dir: It specify the folder of the jar files.
+ -->
+ <property name="src.dir" location="src" />
+ <property name="classes.dir" location="WebContent/WEB-INF/classes" />
+ <property name="lib.dir" location="WebContent/WEB-INF/lib" />
+ <property name="dest.dir" location="dest" />
+ 
+ <!-- Step:3 Target for deleting the existing directories.
+             A target is a collection of tasks that you want to run as one unit.
+ -->
+ <target name="clean" description="Deleting all directories">
+ <delete dir="${classes.dir}"/>
+ <delete dir="${dest.dir}"/>
+ </target>
+
+ <!-- Step:4 Target for creating the new directories-->
+ <target name="makedir" description="Creating all directories">
+ <mkdir dir="${classes.dir}"/>
+ <mkdir dir="${lib.dir}"/>
+ <mkdir dir="${dest.dir}"/>
+ </target>
+ 
+ <!-- Step:5 Target for compiling the java code
+      
+	  Ant - Data Types
+	  
+	  1. Fileset :
+	  
+	  The fileset data types represents a collection of files. 
+	  It is used as a filter to include or exclude files that match a particular pattern.
+	  
+	  <fileset dir = "${src}" casesensitive = "yes">
+		<include name = "**/*.java"/>
+		<exclude name = "**/*Stub*"/>
+	 </fileset>
+	 
+	 The fileset selects all .java files in the source folder except those contain the word 'Stub'. 
+	 The case-sensitive filter is applied to the fileset which means a file with the name Samplestub.java will not be excluded from the fileset.
+	
+	 2.Pattern set
+	 
+	  A pattern set is a pattern that allows to filter files or folders easily based on certain patterns. Patterns can be created using the following meta characters −
+
+	 ? − Matches one character only.
+
+	 * − Matches zero or many characters.
+
+	 ** − Matches zero or many directories recursively.
+	 
+	 <patternset id = "java.files.without.stubs">
+		<include name = "src/**/*.java"/>
+		<exclude name = "src/**/*Stub*"/>
+	 </patternset>
+	 
+	 The patternset can then be reused with a fileset as follows −
+
+	<fileset dir = "${src}" casesensitive = "yes">
+	   <patternset refid = "java.files.without.stubs"/>
+	</fileset>
+	
+	3. File list
+	
+	The filelist data type is similar to the file set except the following differences −
+
+	filelist contains explicitly named lists of files and it does not support wild cards.
+
+	filelist data type can be applied for existing or non-existing files.
+
+	Let us see the following example of the filelist data type. Here, the attribute webapp.src.folder points to the web application source folder of the project.
+
+	<filelist id = "config.files" dir = "${webapp.src.folder}">
+	   <file name = "applicationConfig.xml"/>
+	   <file name = "faces-config.xml"/>
+	   <file name = "web.xml"/>
+	   <file name = "portlet.xml"/>
+	</filelist>
+	
+	4. Filter set
+	Using a filterset data type along with the copy task, you can replace certain text in all files that matches the pattern with a replacement value.
+
+	A common example is to append the version number to the release notes file, as shown in the following code.
+
+	<copy todir = "${output.dir}">
+	   <fileset dir = "${releasenotes.dir}" includes = "**/*.txt"/>
+	   
+	   <filterset>
+		  <filter token = "VERSION" value = "${current.version}"/>
+	   </filterset>
+	</copy>
+	
+	5. Path
+	The path data type is commonly used to represent a class-path. Entries in the path are separated using semicolons or colons. However, these characters are replaced at the run-time by the executing system's path separator character.
+
+	The classpath is set to the list of jar files and classes in the project, as shown in the example below.
+
+	<path id = "build.classpath.jar">
+	   <pathelement path = "${env.J2EE_HOME}/${j2ee.jar}"/>
+	   
+	   <fileset dir = "lib">
+		  <include name = "**/*.jar"/>
+	   </fileset>
+	</path>
+	
+ -->
+  <!-- Step 6: Compiling All Classes-->
+ <target name="compile" depends="clean, makedir" description="compiling java source code">
+ <javac srcdir="${src.dir}" destdir="${classes.dir}">
+  <classpath refid="classpath"/>
+ </javac> 
+ </target>
+
+ 
+ <!-- Step 7: Generate WAR file-->
+ <target name="war" description="Generate WAR file" depends="compile">
+	
+	<war destfile="${dest.dir}\CounterWebApp.war"
+		 webxml="WebContent/WEB-INF/web.xml">
+		 
+		<!-- <classes dir="${classes.dir}"/>
+		<fileset dir="${dest.dir}">
+		  <include name="**/*.*"/>
+		</fileset>
+		<lib dir="${lib.dir}"/>
+		-->
+		
+		<fileset dir="WebContent"/>
+		
+		<manifest>
+		<attribute name="AntCreateWar" value="ant.Create.War" />
+		</manifest>
+	</war>
+ 
+
+ </target>
+ 
+ <!-- Defualt target to run all targets-->
+  <target name="mainTarget" depends="compile, war">
+    <description>Main target</description>
+  </target>
+ 
+ 
+</project>
