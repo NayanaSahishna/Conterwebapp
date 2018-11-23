@@ -4,6 +4,6 @@
  
 <h3>Message : ${message}</h3>
 <h3>Counter : ${counter}</h3>	
-<aside> <h3>Nayana</h3></aside>
+<marquee> <h3>Nayana</h3></marquee>
 </body>
 </html>
